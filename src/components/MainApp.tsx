@@ -1,15 +1,19 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Camera, Info, Heart, Globe } from 'lucide-react';
+import { Upload, Camera, Info, Heart, Globe, LogOut, User } from 'lucide-react';
 import { identifyBreed, IdentificationResult } from '../services/breedIdentification';
 import { Language } from '../types/language';
 import { translations } from '../data/translations';
+import { logout } from '../services/authService';
+import { User as UserType } from '../types/auth';
 
 interface MainAppProps {
   selectedLanguage: Language;
   onLanguageChange: () => void;
+  user: UserType;
+  onLogout: () => void;
 }
 
-const MainApp: React.FC<MainAppProps> = ({ selectedLanguage, onLanguageChange }) => {
+const MainApp: React.FC<MainAppProps> = ({ selectedLanguage, onLanguageChange, user, onLogout }) => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -69,6 +73,15 @@ const MainApp: React.FC<MainAppProps> = ({ selectedLanguage, onLanguageChange })
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await logout();
+      onLogout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 font-figtree">
       {/* Header */}
@@ -103,17 +116,37 @@ const MainApp: React.FC<MainAppProps> = ({ selectedLanguage, onLanguageChange })
               </div>
             </div>
             
-            {/* Language Switcher */}
-            <button
-              onClick={onLanguageChange}
-              className="flex items-center space-x-2 bg-blue-100 hover:bg-blue-200 
-                         text-blue-800 px-4 py-2 rounded-full transition-colors duration-300
-                         focus:outline-none focus:ring-2 focus:ring-blue-300"
-            >
-              <Globe className="w-5 h-5" />
-              <span className="text-2xl">{selectedLanguage.flag}</span>
-              <span className="hidden sm:inline font-medium">{selectedLanguage.nativeName}</span>
-            </button>
+            {/* User Menu */}
+            <div className="flex items-center space-x-4">
+              {/* User Info */}
+              <div className="hidden sm:flex items-center space-x-2 bg-gray-100 px-4 py-2 rounded-full">
+                <User className="w-5 h-5 text-gray-600" />
+                <span className="text-gray-800 font-medium">{user.name}</span>
+              </div>
+              
+              {/* Language Switcher */}
+              <button
+                onClick={onLanguageChange}
+                className="flex items-center space-x-2 bg-blue-100 hover:bg-blue-200 
+                           text-blue-800 px-4 py-2 rounded-full transition-colors duration-300
+                           focus:outline-none focus:ring-2 focus:ring-blue-300"
+              >
+                <Globe className="w-5 h-5" />
+                <span className="text-2xl">{selectedLanguage.flag}</span>
+                <span className="hidden sm:inline font-medium">{selectedLanguage.nativeName}</span>
+              </button>
+              
+              {/* Logout Button */}
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 bg-red-100 hover:bg-red-200 
+                           text-red-800 px-4 py-2 rounded-full transition-colors duration-300
+                           focus:outline-none focus:ring-2 focus:ring-red-300"
+              >
+                <LogOut className="w-5 h-5" />
+                <span className="hidden sm:inline font-medium">Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>

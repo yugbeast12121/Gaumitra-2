@@ -40,8 +40,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ onLanguageSelect })
                          transition-all duration-300 transform hover:scale-105 
                          focus:outline-none focus:ring-4 focus:ring-blue-200"
             >
-              <div className="flex items-center justify-between mb-4">
-                <span className="text-3xl sm:text-4xl">{language.flag}</span>
+              <div className="flex items-center justify-end mb-4">
                 <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 
                                      transition-colors duration-300 group-hover:translate-x-1" />
               </div>

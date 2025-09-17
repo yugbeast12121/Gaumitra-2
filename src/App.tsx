@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import LanguageSelector from './components/LanguageSelector';
 import AuthPage from './components/AuthPage';
 import MainApp from './components/MainApp';
+import ChatbotWidget from './components/ChatbotWidget';
 import { Language } from './types/language';
 import { User } from './types/auth';
 import { getCurrentUser, clearCurrentUser } from './services/authService';
@@ -69,6 +70,19 @@ function App() {
       user={user}
       onLogout={handleLogout}
     />
+  );
+
+  // Always render the chatbot widget when the main app is shown
+  return (
+    <>
+      <MainApp 
+        selectedLanguage={selectedLanguage} 
+        onLanguageChange={handleLanguageChange} 
+        user={user}
+        onLogout={handleLogout}
+      />
+      <ChatbotWidget />
+    </>
   );
 }
 

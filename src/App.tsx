@@ -63,15 +63,6 @@ function App() {
     );
   }
 
-  return (
-    <MainApp 
-      selectedLanguage={selectedLanguage} 
-      onLanguageChange={handleLanguageChange} 
-      user={user}
-      onLogout={handleLogout}
-    />
-  );
-
   // Always render the chatbot widget when the main app is shown
   return (
     <>

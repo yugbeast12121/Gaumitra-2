@@ -25,3 +25,11 @@ export interface ChatResponse {
   answer: string;
   sources?: SearchResult[];
 }
+
+// Extend Window interface for speech recognition
+declare global {
+  interface Window {
+    SpeechRecognition: any;
+    webkitSpeechRecognition: any;
+  }
+}

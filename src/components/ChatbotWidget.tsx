@@ -11,13 +11,17 @@ import {
   Minimize2,
   Trash2,
   Bot,
-  User as UserIcon
+  User as UserIcon,
+  Settings,
+  Languages
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { useChatbot } from '../hooks/useChatbot';
+import { SUPPORTED_LANGUAGES } from '../types/language';
 
 const ChatbotWidget: React.FC = () => {
   const [inputText, setInputText] = useState('');
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   
@@ -37,7 +41,11 @@ const ChatbotWidget: React.FC = () => {
     stopListening,
     stopSpeaking,
     clearHistory
-  } = useChatbot();
+    speechSupported,
+    voiceSettings,
+    updateLanguageSettings,
+    setVoiceSettings,
+    availableVoices
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
@@ -66,6 +74,23 @@ const ChatbotWidget: React.FC = () => {
     }
   };
 
+  const handleLanguageChange = (languageCode: string) => {
+    updateLanguageSettings(languageCode);
+  };
+
+  const handleVoiceSettingChange = (setting: string, value: number) => {
+    setVoiceSettings(prev => ({
+      ...prev,
+      [setting]: value
+    }));
+  };
+
+  const getCurrentLanguageName = () => {
+    const langCode = voiceSettings.speechLanguage.split('-')[0];
+    const language = SUPPORTED_LANGUAGES.find(lang => lang.code === langCode);
+    return language ? language.nativeName : 'English';
+  };
+
   // Floating button when closed
   if (!isOpen) {
     return (
@@ -86,6 +111,92 @@ const ChatbotWidget: React.FC = () => {
   // Chat interface
   const chatContent = (
     <div className="flex flex-col h-full bg-white">
+      {/* Settings Panel */}
+      {showSettings && (
+        <div className="bg-gray-50 border-b border-gray-200 p-4 space-y-4">
+          <div className="flex items-center justify-between">
+            <h4 className="font-semibold text-gray-800">Voice Settings</h4>
+            <button
+              onClick={() => setShowSettings(false)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+          
+          {/* Language Selection */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Speech Language
+            </label>
+            <select
+              value={voiceSettings.speechLanguage.split('-')[0]}
+              onChange={(e) => handleLanguageChange(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {SUPPORTED_LANGUAGES.map((lang) => (
+                <option key={lang.code} value={lang.code}>
+                  {lang.flag} {lang.nativeName}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Voice Speed */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Speech Rate: {voiceSettings.speechRate.toFixed(1)}x
+            </label>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={voiceSettings.speechRate}
+              onChange={(e) => handleVoiceSettingChange('speechRate', parseFloat(e.target.value))}
+              className="w-full"
+            />
+          </div>
+
+          {/* Voice Pitch */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Speech Pitch: {voiceSettings.speechPitch.toFixed(1)}
+            </label>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={voiceSettings.speechPitch}
+              onChange={(e) => handleVoiceSettingChange('speechPitch', parseFloat(e.target.value))}
+              className="w-full"
+            />
+          </div>
+
+          {/* Voice Volume */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Speech Volume: {Math.round(voiceSettings.speechVolume * 100)}%
+            </label>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.1"
+              value={voiceSettings.speechVolume}
+              onChange={(e) => handleVoiceSettingChange('speechVolume', parseFloat(e.target.value))}
+              className="w-full"
+            />
+          </div>
+
+          {/* Available Voices Info */}
+          <p className="text-xs text-gray-500">
+            Available voices: {availableVoices.length} | Current: {getCurrentLanguageName()}
+          </p>
+        </div>
+      )}
+
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
@@ -101,6 +212,15 @@ const ChatbotWidget: React.FC = () => {
         </div>
         
         <div className="flex items-center space-x-2">
+          {/* Voice Settings */}
+          <button
+            onClick={() => setShowSettings(!showSettings)}
+            className="p-2 hover:bg-white/20 rounded-lg transition-colors duration-200"
+            title="Voice settings"
+          >
+            <Settings className="w-4 h-4" />
+          </button>
+          
           {/* Clear History */}
           {messages.length > 0 && (
             <button
@@ -133,7 +253,7 @@ const ChatbotWidget: React.FC = () => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div className={`flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 ${showSettings ? 'max-h-64' : ''}`}>
         {messages.length === 0 ? (
           <div className="text-center py-8">
             <Bot className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -142,7 +262,7 @@ const ChatbotWidget: React.FC = () => {
             </h4>
             <p className="text-gray-500 text-sm max-w-xs mx-auto">
               I can help you with cattle breeds, livestock management, and farming questions. 
-              Ask me anything!
+              Ask me anything in your preferred language!
             </p>
           </div>
         ) : (
@@ -223,7 +343,7 @@ const ChatbotWidget: React.FC = () => {
                 }`}
                 title={isListening ? 'Stop listening' : 'Voice input'}
               >
-                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                {isListening ? <MicOff className="w-4 h-4 animate-pulse" /> : <Mic className="w-4 h-4" />}
               </button>
             )}
           </div>
@@ -258,6 +378,12 @@ const ChatbotWidget: React.FC = () => {
         {/* Status indicators */}
         <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
           <div className="flex items-center space-x-4">
+            {/* Current Language */}
+            <span className="flex items-center space-x-1">
+              <Languages className="w-3 h-3" />
+              <span>{getCurrentLanguageName()}</span>
+            </span>
+            
             {speechSupported && (
               <span className="flex items-center space-x-1">
                 <Mic className="w-3 h-3" />
@@ -277,7 +403,7 @@ const ChatbotWidget: React.FC = () => {
               </span>
             )}
           </div>
-          <span>Press Enter to send</span>
+          <span>Enter to send • {speechSupported ? 'Mic for voice' : 'Voice unavailable'}</span>
         </div>
       </div>
     </div>

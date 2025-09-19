@@ -49,7 +49,7 @@ const ChatbotWidget = () => {
     }
   }, [isOpen]);
 
-  const handleSendMessage = async (e: React.FormEvent) => {
+  const handleSubmitMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inputMessage.trim()) {
       await handleSendMessage(inputMessage);
@@ -235,7 +235,7 @@ const ChatbotWidget = () => {
           </div>
 
           {/* Input */}
-          <form onSubmit={handleSendMessage} className="p-4 border-t">
+          <form onSubmit={handleSubmitMessage} className="p-4 border-t">
             <div className="flex space-x-2">
               <input
                 ref={inputRef}

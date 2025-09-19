@@ -27,12 +27,12 @@ const ChatbotWidget = () => {
     isListening,
     isSpeaking,
     voiceSettings,
-    sendMessage,
+    handleSendMessage,
     startListening,
     stopListening,
-    toggleSpeaking,
-    updateVoiceSettings,
-    currentLanguage
+    toggleSpeechVolume,
+    setVoiceSettings,
+    closeChatbot
   } = useChatbot();
 
   const scrollToBottom = () => {
@@ -52,7 +52,7 @@ const ChatbotWidget = () => {
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (inputMessage.trim()) {
-      await sendMessage(inputMessage);
+      await handleSendMessage(inputMessage);
       setInputMessage("");
     }
   };
@@ -80,52 +80,52 @@ const ChatbotWidget = () => {
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Speech Rate: {voiceSettings.rate}x
+            Speech Rate: {voiceSettings.speechRate}x
           </label>
           <input
             type="range"
             min="0.5"
             max="2"
             step="0.1"
-            value={voiceSettings.rate}
-            onChange={(e) => updateVoiceSettings({ rate: parseFloat(e.target.value) })}
+            value={voiceSettings.speechRate}
+            onChange={(e) => setVoiceSettings(prev => ({ ...prev, speechRate: parseFloat(e.target.value) }))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           />
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Pitch: {voiceSettings.pitch}
+            Pitch: {voiceSettings.speechPitch}
           </label>
           <input
             type="range"
             min="0"
             max="2"
             step="0.1"
-            value={voiceSettings.pitch}
-            onChange={(e) => updateVoiceSettings({ pitch: parseFloat(e.target.value) })}
+            value={voiceSettings.speechPitch}
+            onChange={(e) => setVoiceSettings(prev => ({ ...prev, speechPitch: parseFloat(e.target.value) }))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           />
         </div>
         
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Volume: {Math.round(voiceSettings.volume * 100)}%
+            Volume: {Math.round(voiceSettings.speechVolume * 100)}%
           </label>
           <input
             type="range"
             min="0"
             max="1"
             step="0.1"
-            value={voiceSettings.volume}
-            onChange={(e) => updateVoiceSettings({ volume: parseFloat(e.target.value) })}
+            value={voiceSettings.speechVolume}
+            onChange={(e) => setVoiceSettings(prev => ({ ...prev, speechVolume: parseFloat(e.target.value) }))}
             className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           />
         </div>
         
         <div className="pt-2 border-t">
           <p className="text-xs text-gray-500">
-            Current Language: <span className="font-medium">{currentLanguage}</span>
+            Current Language: <span className="font-medium">{voiceSettings.recognitionLanguage}</span>
           </p>
         </div>
       </div>
@@ -155,18 +155,18 @@ const ChatbotWidget = () => {
                 <Settings className="w-4 h-4" />
               </button>
               <button
-                onClick={toggleSpeaking}
+                onClick={toggleSpeechVolume}
                 className="p-1 hover:bg-blue-700 rounded"
                 title={isSpeaking ? "Mute" : "Unmute"}
               >
-                {voiceSettings.volume > 0 ? (
+                {voiceSettings.speechVolume > 0 ? (
                   <Volume2 className="w-4 h-4" />
                 ) : (
                   <VolumeX className="w-4 h-4" />
                 )}
               </button>
               <button
-                onClick={() => setIsOpen(false)}
+                onClick={closeChatbot}
                 className="p-1 hover:bg-blue-700 rounded"
               >
                 <X className="w-4 h-4" />
@@ -189,25 +189,25 @@ const ChatbotWidget = () => {
               <div
                 key={message.id}
                 className={`flex ${
-                  message.sender === "user" ? "justify-end" : "justify-start"
+                  message.isUser ? "justify-end" : "justify-start"
                 }`}
               >
                 <div
                   className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
-                    message.sender === "user"
+                    message.isUser
                       ? "bg-blue-600 text-white"
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
                   <div className="flex items-start space-x-2">
-                    {message.sender === "bot" && (
+                    {!message.isUser && (
                       <Bot className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     )}
-                    {message.sender === "user" && (
+                    {message.isUser && (
                       <UserIcon className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     )}
                     <div className="flex-1">
-                      <p className="text-sm">{message.content}</p>
+                      <p className="text-sm">{message.text}</p>
                       <p className="text-xs opacity-70 mt-1">
                         {formatDistanceToNow(message.timestamp, { addSuffix: true })}
                       </p>
@@ -269,7 +269,7 @@ const ChatbotWidget = () => {
             {isListening && (
               <p className="text-xs text-blue-600 mt-2 flex items-center">
                 <Mic className="w-3 h-3 mr-1 animate-pulse" />
-                Listening in {currentLanguage}...
+                Listening in {voiceSettings.recognitionLanguage}...
               </p>
             )}
           </form>

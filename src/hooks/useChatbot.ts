@@ -181,10 +181,22 @@ export const useChatbot = () => {
     setState(prev => ({ ...prev, isFullPage: !prev.isFullPage }));
   }, []);
 
+  const stopListening = useCallback(() => {
+    if (recognition) {
+      recognition.stop();
+    }
+    setState(prev => ({ ...prev, isListening: false }));
+  }, [recognition]);
+
+  const toggleSpeechVolume = useCallback(() => {
+    const newVolume = voiceSettings.speechVolume > 0 ? 0 : 1;
+    setVoiceSettings(prev => ({ ...prev, speechVolume: newVolume }));
+  }, [voiceSettings.speechVolume]);
+
   const closeChatbot = useCallback(() => {
     setState(prev => ({ ...prev, isOpen: false, isFullPage: false }));
     cancelSpeech();
-    if (recognition) recognition.stop();
+    stopListening();
   }, [cancelSpeech, stopListening]);
 
   const addMessage = useCallback((text: string, isUser: boolean, isTyping = false) => {
@@ -259,13 +271,6 @@ export const useChatbot = () => {
     }
   }, [recognition, speechSupported]);
 
-  const stopListening = useCallback(() => {
-    if (recognition) {
-      recognition.stop();
-    }
-    setState(prev => ({ ...prev, isListening: false }));
-  }, [recognition]);
-
   const stopSpeaking = useCallback(() => {
     cancelSpeech();
   }, [cancelSpeech]);
@@ -284,6 +289,7 @@ export const useChatbot = () => {
     startListening,
     stopListening,
     stopSpeaking,
+    toggleSpeechVolume,
     clearHistory,
     speechSupported,
     voiceSettings,
